@@ -1,0 +1,7 @@
+name: 's3-on-demand-action'
+description: 'S3 On Demand Actions for Static WebSite'
+author: 'Mathias Gheno Azzolini <mathiasgheno@gmail.com>'
+
+runs:
+  using: 'node14'
+  maind: 'dist/index.js'
