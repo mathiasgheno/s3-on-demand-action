@@ -1,16 +1,16 @@
 import { readdir, readFile } from 'fs';
 import { promisify } from 'util';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { CONFIGS } from '../../configs/configs';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { s3 } from '../createS3Instance/createS3Instance';
 
-const s3 = new S3Client({region: CONFIGS.region})
+export type UploadAllFiles = (Bcuket: string, path?: string) => Promise<void>;
 
-export async function uploadAllFiles(Bucket: string, path = 'www'): Promise<void> {
+export const uploadAllFiles: UploadAllFiles = async (Bucket, path = 'www') => {
   const readdir$ = promisify(readdir);
   const readFile$ = promisify(readFile);
   const files = await readdir$('www', { encoding: 'utf8', withFileTypes: false });
 
-  console.log(files);
+  console.log('All files send to upload', files.map(file => file));
 
   const errorUploadFileCallback = (file: string) => (erro: unknown) => {
     const message = `An error has ocurred while trying to upload file ${file} at Bucket ${Bucket}`;

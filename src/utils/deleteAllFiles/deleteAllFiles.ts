@@ -1,12 +1,12 @@
-import { S3Client, DeleteObjectCommand, ListObjectsCommand } from "@aws-sdk/client-s3";
-
-import { CONFIGS } from "../../configs/configs";
-
-const S3 = new S3Client({ region: CONFIGS.region });
+import {
+  DeleteObjectCommand,
+  ListObjectsCommand
+} from "@aws-sdk/client-s3";
+import { s3 } from "../createS3Instance/createS3Instance";
 
 export async function deleteAllFiles(Bucket: string) {
   try {
-    const allFiles = await S3.send(
+    const allFiles = await s3.send(
       new ListObjectsCommand({ Bucket }),
     );
 
@@ -19,7 +19,7 @@ export async function deleteAllFiles(Bucket: string) {
         Bucket,
         Key,
       })
-      await S3
+      await s3
         .send(deleteCommand)
         .catch(e => {
           const message = `An error has occurred while trying to delete ${Key} in ${Bucket}: ${e}`;

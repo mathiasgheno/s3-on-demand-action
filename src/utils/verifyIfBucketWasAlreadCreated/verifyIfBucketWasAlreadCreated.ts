@@ -1,9 +1,9 @@
-import { S3Client, ListBucketsCommand } from '@aws-sdk/client-s3';
-import { CONFIGS } from "../../configs/configs";
+import { ListBucketsCommand } from '@aws-sdk/client-s3';
+import { s3 } from '../createS3Instance/createS3Instance';
 
-const s3 = new S3Client({ region: CONFIGS.region });
+export type VerifyIfBucketWasAlreadCreated = (Bucket: string) => Promise<boolean>;
 
-export async function verifyIfBucketWasAlreadCreated(bucketName: string): Promise<boolean> {
+export const verifyIfBucketWasAlreadCreated: VerifyIfBucketWasAlreadCreated = async (Bucket) => {
   try {
     const { Buckets } = await s3.send(
       new ListBucketsCommand({}),
@@ -11,7 +11,7 @@ export async function verifyIfBucketWasAlreadCreated(bucketName: string): Promis
     if(!Buckets || Buckets.length === 0) {
       return false;
     }
-    return Buckets.some(Bucket => Bucket.Name === bucketName);
+    return Buckets.some(({ Name }) => Name === Bucket);
   } catch (e) {
     throw new Error(`An erros has occurred in verifyIfBucketWasAlreadCreated: ${e}`);
   }
