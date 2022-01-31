@@ -32,4 +32,4 @@ export async function deleteAllFiles(Bucket: string) {
   }
 }
 
-deleteAllFiles('mathiasgheno-vanilla-modal-on-demand-test').then(console.log);
+// deleteAllFiles('mathiasgheno-vanilla-modal-on-demand-test').then(console.log);

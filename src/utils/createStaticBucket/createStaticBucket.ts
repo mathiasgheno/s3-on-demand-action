@@ -17,4 +17,4 @@ export const createStaticBucket: CreateStaticBucket = async (Bucket) => {
   }
 }
 
-createStaticBucket('mathiasgheno-vanilla-modal-on-demand-test-4').then(console.log);
+// createStaticBucket('mathiasgheno-vanilla-modal-on-demand-test-4').then(console.log);

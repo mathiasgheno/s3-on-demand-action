@@ -2,7 +2,8 @@ import { readdir, readFile } from 'fs';
 import { promisify } from 'util';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3 } from '../createS3Instance/createS3Instance';
-
+import { generateContentTypeOfKeyFile } from "../generateContentTypeOfKeyFile/generateContentTypeOfKeyFile";
+import { getBucketUrl } from '../getBucketUrl/getBucketUrl';
 export type UploadAllFiles = (Bcuket: string, path?: string) => Promise<void>;
 
 export const uploadAllFiles: UploadAllFiles = async (Bucket, path = 'www') => {
@@ -24,20 +25,24 @@ export const uploadAllFiles: UploadAllFiles = async (Bucket, path = 'www') => {
       console.info(`Reading content of ${filePath}`);
       const Body = await readFile$(filePath, {});
       console.info(`Content of ${filePath} was loaded`);
+      const ContentType = generateContentTypeOfKeyFile(Key);
+      console.info(`Making upload of file ${filePath} with ContentType: ${ContentType}`);
       await s3.send(
         new PutObjectCommand({
           Bucket,
           Key,
           Body,
+          ContentType,
         })
       )
         .catch(errorUploadFileCallback(Key));
       console.info(`File ${filePath} was successfully uploaded`);
     }
+    console.info(`You can check your website content at: ${getBucketUrl(Bucket)}`)
   } catch (e) {
     const message = `An error has occurred in uploadAllFiles: ${e}`;
     throw new Error(message);
   }
 }
 
-uploadAllFiles('mathiasgheno-vanilla-modal-on-demand-test-4').then(console.log);
+// uploadAllFiles('mathiasgheno-vanilla-modal-on-demand-tes-5').then(console.log);
