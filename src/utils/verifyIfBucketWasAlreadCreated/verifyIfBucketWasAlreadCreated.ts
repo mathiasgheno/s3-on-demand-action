@@ -8,6 +8,7 @@ export const verifyIfBucketWasAlreadCreated: VerifyIfBucketWasAlreadCreated = as
     const { Buckets } = await s3.send(
       new ListBucketsCommand({}),
     )
+    console.info(`All Buckets: ${Buckets?.map(({Name}) => Name)}`);
     if(!Buckets || Buckets.length === 0) {
       return false;
     }

@@ -1,15 +1,17 @@
-import { readdir, readFile } from 'fs';
+import { readFile } from 'fs';
 import { promisify } from 'util';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3 } from '../createS3Instance/createS3Instance';
 import { generateContentTypeOfKeyFile } from "../generateContentTypeOfKeyFile/generateContentTypeOfKeyFile";
 import { getBucketUrl } from '../getBucketUrl/getBucketUrl';
+import { listAllFiles } from '../listAllFiles/listAllFiles';
+import { generateKeyOfFile } from '../generateKeyOfFile/generateKeyOfFile';
+
 export type UploadAllFiles = (Bcuket: string, path?: string) => Promise<void>;
 
 export const uploadAllFiles: UploadAllFiles = async (Bucket, path = 'www') => {
-  const readdir$ = promisify(readdir);
   const readFile$ = promisify(readFile);
-  const files = await readdir$('www', { encoding: 'utf8', withFileTypes: false });
+  const files = await listAllFiles(path);
 
   console.log('All files send to upload', files.map(file => file));
 
@@ -20,13 +22,13 @@ export const uploadAllFiles: UploadAllFiles = async (Bucket, path = 'www') => {
   }
 
   try {
-    for await (const Key of files) {
-      const filePath = `${path}/${Key}`;
-      console.info(`Reading content of ${filePath}`);
-      const Body = await readFile$(filePath, {});
-      console.info(`Content of ${filePath} was loaded`);
-      const ContentType = generateContentTypeOfKeyFile(Key);
-      console.info(`Making upload of file ${filePath} with ContentType: ${ContentType}`);
+    for await (const file of files) {
+      console.info(`Reading content of ${file}`);
+      const Body = await readFile$(file, {});
+      console.info(`Content of ${file} was loaded`);
+      const ContentType = generateContentTypeOfKeyFile(file);
+      console.info(`Making upload of file ${file} with ContentType: ${ContentType}`);
+      const Key = generateKeyOfFile(file, path);
       await s3.send(
         new PutObjectCommand({
           Bucket,
@@ -35,8 +37,8 @@ export const uploadAllFiles: UploadAllFiles = async (Bucket, path = 'www') => {
           ContentType,
         })
       )
-        .catch(errorUploadFileCallback(Key));
-      console.info(`File ${filePath} was successfully uploaded`);
+        .catch(errorUploadFileCallback(file));
+      console.info(`File ${file} was successfully uploaded`);
     }
     console.info(`You can check your website content at: ${getBucketUrl(Bucket)}`)
   } catch (e) {
