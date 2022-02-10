@@ -4,4 +4,4 @@ author: 'Mathias Gheno Azzolini <mathiasgheno@gmail.com>'
 
 runs:
   using: 'node14'
-  maind: 'dist/index.js'
+  main: 'dist/index.js'
