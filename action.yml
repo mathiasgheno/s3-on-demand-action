@@ -3,5 +3,5 @@ description: 'S3 On Demand Actions for Static WebSite'
 author: 'Mathias Gheno Azzolini <mathiasgheno@gmail.com>'
 
 runs:
-  using: 'node14'
+  using: 'node16'
   main: 'dist/index.js'
