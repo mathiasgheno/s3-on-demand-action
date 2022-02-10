@@ -4,7 +4,10 @@ This project should be an Github Action to create, delete and update S3 Buckets 
 
 This is still in development.
 
-- [] Pass region has Github Action Parameter or .env for development
-- [] Pass owner has Github Action Parameter or .env for development
-- [] Recursive files upload
-- [] Finish createStaticBucket
+- [ ] Pass region has Github Action Parameter or .env for development
+- [ ] Pass owner has Github Action Parameter or .env for development
+- [x] Recursive files upload
+- [x] Finish createStaticBucket
+- [ ] Pass token credentials to github action
+- [ ] Checkout project on action to download at content or reference it
+- [ ] Docs for actions
