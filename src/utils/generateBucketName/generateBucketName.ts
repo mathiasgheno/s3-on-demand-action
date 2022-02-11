@@ -13,6 +13,7 @@ function getBranchFromRef(ref: string): string {
 export function generateBucketName() {
   const githubNameOwner = github.context.repo.owner;
   const projectLower = github.context.repo.repo;
+  console.info('Ref from GitHub: ', github.context.ref);
   const branchLower = getBranchFromRef(github.context.ref);
   const branchWithoutInvalidCharacter = branchLower.replace(/\//g, '-');
   return `${githubNameOwner}-${projectLower}-${branchWithoutInvalidCharacter}`;
