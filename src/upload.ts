@@ -6,12 +6,12 @@ import {
   verifyIfBucketWasAlreadCreated,
 } from './utils';
 
-type Main = (project: string, branchName: string) => Promise<void>
+type Main = () => Promise<void>
 
-export const main: Main = async (project, branch) => {
+export const main: Main = async () => {
   try {
     console.info('Executing main function.');
-    const Bucket = generateBucketName(project, branch);
+    const Bucket = generateBucketName();
     console.info(`Bucket name created: ${Bucket}`);
     const isBucketAlreadyCreated = await verifyIfBucketWasAlreadCreated(Bucket);
     if(isBucketAlreadyCreated) {
@@ -28,4 +28,4 @@ export const main: Main = async (project, branch) => {
   }
 }
 
-main('vanilla-modal-on-demand', 'test-8').then(console.log)
+main().then(console.log)
