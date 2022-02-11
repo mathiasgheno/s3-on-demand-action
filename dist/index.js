@@ -44215,8 +44215,8 @@ exports.generateBucketName = void 0;
 const github = __importStar(__nccwpck_require__(5438));
 function getBranchFromRef(ref) {
     let branchName = '';
-    if (ref.indexOf('/refs/heads/') > -1) {
-        branchName = ref.slice('/refs/heads/'.length);
+    if (ref.indexOf('refs/heads/') > -1) {
+        branchName = ref.slice('refs/heads/'.length);
     }
     return branchName.toLowerCase();
 }

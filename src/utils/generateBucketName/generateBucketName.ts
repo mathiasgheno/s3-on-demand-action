@@ -2,8 +2,8 @@ import * as github from "@actions/github";
 
 function getBranchFromRef(ref: string): string {
   let branchName = '';
-  if (ref.indexOf('/refs/heads/') > -1) {
-    branchName = ref.slice('/refs/heads/'.length);
+  if (ref.indexOf('refs/heads/') > -1) {
+    branchName = ref.slice('refs/heads/'.length);
   }
   return branchName.toLowerCase();
 }
