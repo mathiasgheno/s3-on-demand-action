@@ -9,5 +9,10 @@ This is still in development.
 - [x] Recursive files upload
 - [x] Finish createStaticBucket
 - [x] Pass token credentials to github action
-- [ ] Checkout project on action to download at content or reference it
+- [x] Checkout project on action to download at content or reference it
 - [ ] Docs for actions
+
+# References
+
+1. Inspiration from [jakejarvis/s3-sync-action](https://github.com/jakejarvis/s3-sync-action)
+2. Learned from [Create a New Github Action to Automate Code Tasks with Javascript](https://egghead.io/courses/create-a-new-github-action-to-automate-code-tasks-with-javascript-f1e9)
