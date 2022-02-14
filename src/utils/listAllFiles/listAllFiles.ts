@@ -1,5 +1,6 @@
 import { promisify } from "util";
 import { lstat, readdir } from "fs";
+import { getWorkspace } from "../getWorkspace/getWorkspace";
 
 export type ListAllFIles = (dir?: string, isRoot?: boolean) => Promise<string[]>
 
@@ -9,7 +10,7 @@ export const listAllFiles: ListAllFIles = async (dir = 'www', isRoot = true) => 
   const lstat$ = promisify(lstat);
   const files = await readdir$(dir, { encoding: 'utf8', withFileTypes: false });
   for await (const file of files) {
-    const projectPath = process.cwd();
+    const projectPath = getWorkspace();
     const fullPath = isRoot ? `${projectPath}/${dir}/${file}` : `${dir}/${file}`;
     const fileStat = await lstat$(fullPath);
     if(fileStat.isFile()) {

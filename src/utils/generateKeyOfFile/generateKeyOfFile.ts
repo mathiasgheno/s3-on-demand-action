@@ -1,7 +1,8 @@
+import { getWorkspace } from "../getWorkspace/getWorkspace";
 
 export const generateKeyOfFile = (file: string, path: string) => {
   return file
-    .replace(process.cwd(), '')
+    .replace(getWorkspace(), '')
     .replace(`${path}/`, '')
     .replace('/', '');
 }

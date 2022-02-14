@@ -43950,11 +43950,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.main = void 0;
 const utils_1 = __nccwpck_require__(6252);
+const getWorkspace_1 = __nccwpck_require__(5262);
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.info('Executing main function.');
-        console.info('Workspace: ', process.env.GITHUB_WORKSPACE || 'local');
-        console.info('Proccess Path:', process.cwd());
+        console.info('Workspace: ', (0, getWorkspace_1.getWorkspace)());
         const Bucket = (0, utils_1.generateBucketName)();
         console.info(`Bucket name created: ${Bucket}`);
         const isBucketAlreadyCreated = yield (0, utils_1.verifyIfBucketWasAlreadCreated)(Bucket);
@@ -44264,15 +44264,16 @@ exports.generateContentTypeOfKeyFile = generateContentTypeOfKeyFile;
 /***/ }),
 
 /***/ 5642:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.generateKeyOfFile = void 0;
+const getWorkspace_1 = __nccwpck_require__(5262);
 const generateKeyOfFile = (file, path) => {
     return file
-        .replace(process.cwd(), '')
+        .replace((0, getWorkspace_1.getWorkspace)(), '')
         .replace(`${path}/`, '')
         .replace('/', '');
 };
@@ -44325,6 +44326,21 @@ exports.getBucketUrl = getBucketUrl;
 
 /***/ }),
 
+/***/ 5262:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getWorkspace = void 0;
+const getWorkspace = () => {
+    return process.env.GITHUB_WORKSPACE || process.cwd();
+};
+exports.getWorkspace = getWorkspace;
+
+
+/***/ }),
+
 /***/ 6252:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -44371,6 +44387,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.listAllFiles = void 0;
 const util_1 = __nccwpck_require__(3837);
 const fs_1 = __nccwpck_require__(7147);
+const getWorkspace_1 = __nccwpck_require__(5262);
 const listAllFiles = (dir = 'www', isRoot = true) => __awaiter(void 0, void 0, void 0, function* () {
     var e_1, _a;
     let flattedFiles = [];
@@ -44380,15 +44397,15 @@ const listAllFiles = (dir = 'www', isRoot = true) => __awaiter(void 0, void 0, v
     try {
         for (var files_1 = __asyncValues(files), files_1_1; files_1_1 = yield files_1.next(), !files_1_1.done;) {
             const file = files_1_1.value;
-            const projectPath = process.cwd();
-            const fullPath = isRoot ? __nccwpck_require__.ab + "s3-on-demand-action/" + dir + '/' + file : `${dir}/${file}`;
+            const projectPath = (0, getWorkspace_1.getWorkspace)();
+            const fullPath = isRoot ? `${projectPath}/${dir}/${file}` : `${dir}/${file}`;
             const fileStat = yield lstat$(fullPath);
             if (fileStat.isFile()) {
                 console.info(`Adding file ${fullPath} to list of files.`);
                 flattedFiles.push(fullPath);
             }
             else {
-                const folderPath = isRoot ? __nccwpck_require__.ab + "s3-on-demand-action/" + dir + '/' + file : `${dir}/${file}`;
+                const folderPath = isRoot ? `${projectPath}/${dir}/${file}` : `${dir}/${file}`;
                 console.log('folferPath', folderPath);
                 console.info(`Reading files of folder ${folderPath}.`);
                 const subfiles = yield (0, exports.listAllFiles)(folderPath, false);

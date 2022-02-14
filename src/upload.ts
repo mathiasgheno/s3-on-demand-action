@@ -5,15 +5,14 @@ import {
   createStaticBucket,
   verifyIfBucketWasAlreadCreated,
 } from './utils';
-import github from '@actions/github';
+import { getWorkspace } from "./utils/getWorkspace/getWorkspace";
 
 type Main = () => Promise<void>
 
 export const main: Main = async () => {
   try {
     console.info('Executing main function.');
-    console.info('Workspace: ', process.env.GITHUB_WORKSPACE || 'local');
-    console.info('Proccess Path:', process.cwd());
+    console.info('Workspace: ', getWorkspace());
     const Bucket = generateBucketName();
     console.info(`Bucket name created: ${Bucket}`);
     const isBucketAlreadyCreated = await verifyIfBucketWasAlreadCreated(Bucket);
