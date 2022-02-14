@@ -43953,6 +43953,8 @@ const utils_1 = __nccwpck_require__(6252);
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.info('Executing main function.');
+        console.info('Workspace: ', process.env.GITHUB_WORKSPACE || 'local');
+        console.info('Proccess Path:', process.cwd());
         const Bucket = (0, utils_1.generateBucketName)();
         console.info(`Bucket name created: ${Bucket}`);
         const isBucketAlreadyCreated = yield (0, utils_1.verifyIfBucketWasAlreadCreated)(Bucket);
