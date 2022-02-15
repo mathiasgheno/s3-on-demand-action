@@ -11,6 +11,8 @@ This is still in development.
 - [x] Pass token credentials to github action
 - [x] Checkout project on action to download at content or reference it
 - [ ] Docs for actions
+- [] Improve static setting
+- [] Delete function
 
 # References
 
