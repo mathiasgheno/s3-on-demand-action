@@ -12,7 +12,7 @@ This is still in development.
 - [x] Checkout project on action to download at content or reference it
 - [x] Docs for actions
 - [] Improve static setting
-- [] Delete function
+- [] Delete function using cron
 
 # How to Use
 
