@@ -44664,10 +44664,12 @@ const upload_1 = __nccwpck_require__(7296);
 const core_1 = __importDefault(__nccwpck_require__(2186));
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.info(`The action is executing the delete function`);
         if (process.env.ACTION === 'delete') {
             yield (0, delete_1.deleteAction)();
             return;
         }
+        console.info(`The action is executing the upload function`);
         yield (0, upload_1.uploadAction)();
     }
     catch (error) {
@@ -44675,6 +44677,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.main = main;
+(0, exports.main)();
 
 
 /***/ }),

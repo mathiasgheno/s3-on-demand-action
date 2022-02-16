@@ -47,8 +47,6 @@ For on delete branch:
 PS: still WIP!
 
 ```yaml
-
-
 name: Branch Deleted
 on: delete
 jobs:
