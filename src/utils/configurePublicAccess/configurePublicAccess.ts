@@ -1,18 +1,16 @@
 import {
-  DeleteBucketCommand,
   PutBucketPolicyCommand,
   PutBucketPolicyCommandOutput,
 } from "@aws-sdk/client-s3";
 import { gereratePolicy } from "../generatePolicy/generatePolicy";
 import { s3 } from "../createS3Instance/createS3Instance";
+import {deleteBucket} from "../deleteBucket/deleteBucket";
 
 export type ConfigurePublicAccess = (Bucket: string) => Promise<PutBucketPolicyCommandOutput>
 
 export const configurePublicAccess: ConfigurePublicAccess = (Bucket) => {
   const deleteBucketCallback = async (erro: any) => {
-    const deleteCommand = new DeleteBucketCommand({ Bucket });
-    await s3.send(deleteCommand);
-    console.info(`Bucket ${Bucket} deleted successfully`);
+    await deleteBucket(Bucket);
     return Promise.reject(erro);
   }
 

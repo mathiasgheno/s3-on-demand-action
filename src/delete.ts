@@ -1,31 +1,28 @@
 import {
   deleteAllFiles,
-  uploadAllFiles,
   generateBucketName,
-  createStaticBucket,
   verifyIfBucketWasAlreadCreated,
 } from './utils';
 import { getWorkspace } from "./utils/getWorkspace/getWorkspace";
+import {deleteBucket} from "./utils/deleteBucket/deleteBucket";
 
-type UploadAction = () => Promise<void>
+type DeleteAction = () => Promise<void>
 
-export const uploadAction: UploadAction = async () => {
+export const deleteAction: DeleteAction = async () => {
   try {
     console.info('Executing main function.');
     console.info('Workspace: ', getWorkspace());
     const Bucket = generateBucketName();
-    console.info(`Bucket name created: ${Bucket}`);
+    console.info(`Bucket name to delete: ${Bucket}`);
     const isBucketAlreadyCreated = await verifyIfBucketWasAlreadCreated(Bucket);
     if(isBucketAlreadyCreated) {
       console.info(`Bucket already created, updating files...`);
       await deleteAllFiles(Bucket);
-      await uploadAllFiles(Bucket);
+      await deleteBucket(Bucket);
       return;
     }
-    console.info(`Bucket is not present, creating new Bucket...`);
-    await createStaticBucket(Bucket);
-    await uploadAllFiles(Bucket);
+    console.info(`There is no Bucket with name ${Bucket}. Nothing was done`);
   } catch (e) {
-    console.error(`An error occurred while executing the main function of upload: ${e}`);
+    console.error(`An error occurred while executing the main function of delete: ${e}`);
   }
 }
