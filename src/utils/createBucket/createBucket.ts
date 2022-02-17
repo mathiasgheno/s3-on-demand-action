@@ -13,5 +13,3 @@ export const createBucket: CreateBucket = (Bucket) => {
     }),
   );
 }
-
-// createBucket('mathiasgheno-vanilla-modal-on-demand-tes-5').then(console.log);

@@ -1,3 +1,4 @@
+import log from 'loglevel';
 import {
   deleteAllFiles,
   generateBucketName,
@@ -10,19 +11,19 @@ type DeleteAction = () => Promise<void>
 
 export const deleteAction: DeleteAction = async () => {
   try {
-    console.info('Executing main function.');
-    console.info('Workspace: ', getWorkspace());
+    log.info('Executing main function.');
+    log.info('Workspace: ', getWorkspace());
     const Bucket = generateBucketName();
-    console.info(`Bucket name to delete: ${Bucket}`);
+    log.info(`Bucket name to delete: ${Bucket}`);
     const isBucketAlreadyCreated = await verifyIfBucketWasAlreadCreated(Bucket);
     if(isBucketAlreadyCreated) {
-      console.info(`Bucket already created, updating files...`);
+      log.info(`Bucket already created, updating files...`);
       await deleteAllFiles(Bucket);
       await deleteBucket(Bucket);
       return;
     }
-    console.info(`There is no Bucket with name ${Bucket}. Nothing was done`);
+    log.info(`There is no Bucket with name ${Bucket}. Nothing was done`);
   } catch (e) {
-    console.error(`An error occurred while executing the main function of delete: ${e}`);
+    log.error(`An error occurred while executing the main function of delete: ${e}`);
   }
 }

@@ -29,6 +29,7 @@
     "aws-sdk": "^2.1062.0",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.5",
-    "@actions/github": "^5.0.0"
+    "@actions/github": "^5.0.0",
+    "loglevel": "^1.8.0"
   }
 }

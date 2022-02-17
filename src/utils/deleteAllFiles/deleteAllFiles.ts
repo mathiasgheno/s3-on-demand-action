@@ -1,3 +1,4 @@
+import log from 'loglevel';
 import {
   DeleteObjectCommand,
   ListObjectsCommand
@@ -23,7 +24,7 @@ export async function deleteAllFiles(Bucket: string) {
         .send(deleteCommand)
         .catch(e => {
           const message = `An error has occurred while trying to delete ${Key} in ${Bucket}: ${e}`;
-          console.error(message);
+          log.error(message);
         })
     }
   } catch (e) {
@@ -31,5 +32,3 @@ export async function deleteAllFiles(Bucket: string) {
     throw new Error(message);
   }
 }
-
-// deleteAllFiles('mathiasgheno-vanilla-modal-on-demand-test').then(console.log);

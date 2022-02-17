@@ -1,3 +1,4 @@
+import log from 'loglevel';
 import { promisify } from "util";
 import { lstat, readdir } from "fs";
 import { getWorkspace } from "../getWorkspace/getWorkspace";
@@ -14,12 +15,12 @@ export const listAllFiles: ListAllFIles = async (dir = 'www', isRoot = true) => 
     const fullPath = isRoot ? `${projectPath}/${dir}/${file}` : `${dir}/${file}`;
     const fileStat = await lstat$(fullPath);
     if(fileStat.isFile()) {
-      console.info(`Adding file ${fullPath} to list of files.`);
+      log.info(`Adding file ${fullPath} to list of files.`);
       flattedFiles.push(fullPath);
     } else {
       const folderPath = isRoot ? `${projectPath}/${dir}/${file}` : `${dir}/${file}`;
-      console.log('folferPath',folderPath);
-      console.info(`Reading files of folder ${folderPath}.`);
+      log.log('folferPath',folderPath);
+      log.info(`Reading files of folder ${folderPath}.`);
       const subfiles = await listAllFiles(folderPath, false);
       flattedFiles = [...flattedFiles, ...subfiles];
     }

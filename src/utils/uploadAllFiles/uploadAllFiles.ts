@@ -1,3 +1,4 @@
+import log from 'loglevel';
 import { readFile } from 'fs';
 import { promisify } from 'util';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
@@ -16,21 +17,21 @@ export const uploadAllFiles: UploadAllFiles = async (
   const readFile$ = promisify(readFile);
   const files = await listAllFiles(path);
 
-  console.log('All files send to upload', files.map(file => file));
+  log.info('All files send to upload', files.map(file => file));
 
   const errorUploadFileCallback = (file: string) => (erro: unknown) => {
     const message = `An error has ocurred while trying to upload file ${file} at Bucket ${Bucket}`;
-    console.error(message, erro);
+    log.error(message, erro);
     return Promise.reject(erro);
   }
 
   try {
     for await (const file of files) {
-      console.info(`Reading content of ${file}`);
+      log.info(`Reading content of ${file}`);
       const Body = await readFile$(file, {});
-      console.info(`Content of ${file} was loaded`);
+      log.info(`Content of ${file} was loaded`);
       const ContentType = generateContentTypeOfKeyFile(file);
-      console.info(`Making upload of file ${file} with ContentType: ${ContentType}`);
+      log.info(`Making upload of file ${file} with ContentType: ${ContentType}`);
       const Key = generateKeyOfFile(file, path);
       await s3.send(
         new PutObjectCommand({
@@ -41,13 +42,13 @@ export const uploadAllFiles: UploadAllFiles = async (
         })
       )
         .catch(errorUploadFileCallback(file));
-      console.info(`File ${file} was successfully uploaded`);
+      log.info(`File ${file} was successfully uploaded`);
     }
-    console.info(`You can check your website content at: ${getBucketUrl(Bucket)}`)
+    log.info(`You can check your website content at: ${getBucketUrl(Bucket)}`)
   } catch (e) {
     const message = `An error has occurred in uploadAllFiles: ${e}`;
     throw new Error(message);
   }
 }
 
-// uploadAllFiles('mathiasgheno-vanilla-modal-on-demand-tes-5').then(console.log);
+// uploadAllFiles('mathiasgheno-vanilla-modal-on-demand-tes-5').then(log.info);

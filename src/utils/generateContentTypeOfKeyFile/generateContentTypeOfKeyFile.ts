@@ -21,5 +21,3 @@ export const generateContentTypeOfKeyFile: GenerateContentTypeOfKeyFile = (Key) 
       return 'text/plain'
   }
 }
-
-// console.log(generateContentTypeOfKeyFile('style.css'));

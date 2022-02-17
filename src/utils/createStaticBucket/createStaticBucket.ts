@@ -16,5 +16,3 @@ export const createStaticBucket: CreateStaticBucket = async (Bucket) => {
     throw new Error(message);
   }
 }
-
-// createStaticBucket('mathiasgheno-vanilla-modal-on-demand-test-4').then(console.log);

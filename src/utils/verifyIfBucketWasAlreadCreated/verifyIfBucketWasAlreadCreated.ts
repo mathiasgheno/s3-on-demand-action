@@ -1,3 +1,4 @@
+import log from 'loglevel';
 import { ListBucketsCommand } from '@aws-sdk/client-s3';
 import { s3 } from '../createS3Instance/createS3Instance';
 
@@ -8,7 +9,7 @@ export const verifyIfBucketWasAlreadCreated: VerifyIfBucketWasAlreadCreated = as
     const { Buckets } = await s3.send(
       new ListBucketsCommand({}),
     )
-    console.info(`All Buckets: ${Buckets?.map(({Name}) => Name)}`);
+    log.info(`All Buckets: ${Buckets?.map(({Name}) => Name)}`);
     if(!Buckets || Buckets.length === 0) {
       return false;
     }

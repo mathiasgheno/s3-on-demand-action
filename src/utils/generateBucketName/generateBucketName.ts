@@ -1,3 +1,4 @@
+import log from 'loglevel';
 import * as github from "@actions/github";
 
 function getBranchFromRef(ref: string): string {
@@ -8,12 +9,10 @@ function getBranchFromRef(ref: string): string {
   return branchName.toLowerCase();
 }
 
-// console.log(getBranchFromRef('/refs/heads/master'));
-
 export function generateBucketName() {
   const githubNameOwner = github.context.repo.owner;
   const projectLower = github.context.repo.repo;
-  console.info('Ref from GitHub: ', github.context.ref);
+  log.info('Ref from GitHub: ', github.context.ref);
   const branchLower = getBranchFromRef(github.context.ref);
   const branchWithoutInvalidCharacter = branchLower.replace(/\//g, '-');
   return `${githubNameOwner}-${projectLower}-${branchWithoutInvalidCharacter}`;
