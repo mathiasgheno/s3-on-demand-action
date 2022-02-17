@@ -9,7 +9,10 @@ import { generateKeyOfFile } from '../generateKeyOfFile/generateKeyOfFile';
 
 export type UploadAllFiles = (Bcuket: string, path?: string) => Promise<void>;
 
-export const uploadAllFiles: UploadAllFiles = async (Bucket, path = 'www') => {
+export const uploadAllFiles: UploadAllFiles = async (
+  Bucket,
+  path = process.env.SOURCE_DIR || 'www'
+) => {
   const readFile$ = promisify(readFile);
   const files = await listAllFiles(path);
 
