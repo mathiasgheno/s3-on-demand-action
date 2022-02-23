@@ -42,6 +42,10 @@ jobs:
 
 ```
 
+You can also pass `SOURCE_DIR` and `LOG_LEVEL` to s3-on-demand-action configuration. The default value is `www` and `info`, respectively.
+
+Still you can pass `ENVIRONMENT` s3-on-demand-action configuration. This value will be used as sufix to the s3 bucket name if configured. 
+
 For on delete branch: 
 
 PS: still WIP!

@@ -9,11 +9,22 @@ function getBranchFromRef(ref: string): string {
   return branchName.toLowerCase();
 }
 
+/**
+ * @description
+ *
+ * This function will generate a bucket name based on: Owner, Repo Name, Branch name.
+ * If you configured `ENVIRONMENT` then this will be used as sufix.
+ *
+ * Example: mathiasgheno-s3-on-demand-action-feature-a-tst
+ *
+ */
 export function generateBucketName() {
   const githubNameOwner = github.context.repo.owner;
   const projectLower = github.context.repo.repo;
   log.info('Ref from GitHub: ', github.context.ref);
   const branchLower = getBranchFromRef(github.context.ref);
   const branchWithoutInvalidCharacter = branchLower.replace(/\//g, '-');
-  return `${githubNameOwner}-${projectLower}-${branchWithoutInvalidCharacter}`;
+  return process.env.ENVIRONMENT
+    ? `${githubNameOwner}-${projectLower}-${branchWithoutInvalidCharacter}`
+    : `${githubNameOwner}-${projectLower}-${branchWithoutInvalidCharacter}-${process.env.ENVIRONMENT}`
 }

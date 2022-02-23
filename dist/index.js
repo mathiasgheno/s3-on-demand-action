@@ -40008,6 +40008,310 @@ exports.isPlainObject = isPlainObject;
 
 /***/ }),
 
+/***/ 8063:
+/***/ (function(module) {
+
+/*
+* loglevel - https://github.com/pimterry/loglevel
+*
+* Copyright (c) 2013 Tim Perry
+* Licensed under the MIT license.
+*/
+(function (root, definition) {
+    "use strict";
+    if (typeof define === 'function' && define.amd) {
+        define(definition);
+    } else if ( true && module.exports) {
+        module.exports = definition();
+    } else {
+        root.log = definition();
+    }
+}(this, function () {
+    "use strict";
+
+    // Slightly dubious tricks to cut down minimized file size
+    var noop = function() {};
+    var undefinedType = "undefined";
+    var isIE = (typeof window !== undefinedType) && (typeof window.navigator !== undefinedType) && (
+        /Trident\/|MSIE /.test(window.navigator.userAgent)
+    );
+
+    var logMethods = [
+        "trace",
+        "debug",
+        "info",
+        "warn",
+        "error"
+    ];
+
+    // Cross-browser bind equivalent that works at least back to IE6
+    function bindMethod(obj, methodName) {
+        var method = obj[methodName];
+        if (typeof method.bind === 'function') {
+            return method.bind(obj);
+        } else {
+            try {
+                return Function.prototype.bind.call(method, obj);
+            } catch (e) {
+                // Missing bind shim or IE8 + Modernizr, fallback to wrapping
+                return function() {
+                    return Function.prototype.apply.apply(method, [obj, arguments]);
+                };
+            }
+        }
+    }
+
+    // Trace() doesn't print the message in IE, so for that case we need to wrap it
+    function traceForIE() {
+        if (console.log) {
+            if (console.log.apply) {
+                console.log.apply(console, arguments);
+            } else {
+                // In old IE, native console methods themselves don't have apply().
+                Function.prototype.apply.apply(console.log, [console, arguments]);
+            }
+        }
+        if (console.trace) console.trace();
+    }
+
+    // Build the best logging method possible for this env
+    // Wherever possible we want to bind, not wrap, to preserve stack traces
+    function realMethod(methodName) {
+        if (methodName === 'debug') {
+            methodName = 'log';
+        }
+
+        if (typeof console === undefinedType) {
+            return false; // No method possible, for now - fixed later by enableLoggingWhenConsoleArrives
+        } else if (methodName === 'trace' && isIE) {
+            return traceForIE;
+        } else if (console[methodName] !== undefined) {
+            return bindMethod(console, methodName);
+        } else if (console.log !== undefined) {
+            return bindMethod(console, 'log');
+        } else {
+            return noop;
+        }
+    }
+
+    // These private functions always need `this` to be set properly
+
+    function replaceLoggingMethods(level, loggerName) {
+        /*jshint validthis:true */
+        for (var i = 0; i < logMethods.length; i++) {
+            var methodName = logMethods[i];
+            this[methodName] = (i < level) ?
+                noop :
+                this.methodFactory(methodName, level, loggerName);
+        }
+
+        // Define log.log as an alias for log.debug
+        this.log = this.debug;
+    }
+
+    // In old IE versions, the console isn't present until you first open it.
+    // We build realMethod() replacements here that regenerate logging methods
+    function enableLoggingWhenConsoleArrives(methodName, level, loggerName) {
+        return function () {
+            if (typeof console !== undefinedType) {
+                replaceLoggingMethods.call(this, level, loggerName);
+                this[methodName].apply(this, arguments);
+            }
+        };
+    }
+
+    // By default, we use closely bound real methods wherever possible, and
+    // otherwise we wait for a console to appear, and then try again.
+    function defaultMethodFactory(methodName, level, loggerName) {
+        /*jshint validthis:true */
+        return realMethod(methodName) ||
+               enableLoggingWhenConsoleArrives.apply(this, arguments);
+    }
+
+    function Logger(name, defaultLevel, factory) {
+      var self = this;
+      var currentLevel;
+      defaultLevel = defaultLevel == null ? "WARN" : defaultLevel;
+
+      var storageKey = "loglevel";
+      if (typeof name === "string") {
+        storageKey += ":" + name;
+      } else if (typeof name === "symbol") {
+        storageKey = undefined;
+      }
+
+      function persistLevelIfPossible(levelNum) {
+          var levelName = (logMethods[levelNum] || 'silent').toUpperCase();
+
+          if (typeof window === undefinedType || !storageKey) return;
+
+          // Use localStorage if available
+          try {
+              window.localStorage[storageKey] = levelName;
+              return;
+          } catch (ignore) {}
+
+          // Use session cookie as fallback
+          try {
+              window.document.cookie =
+                encodeURIComponent(storageKey) + "=" + levelName + ";";
+          } catch (ignore) {}
+      }
+
+      function getPersistedLevel() {
+          var storedLevel;
+
+          if (typeof window === undefinedType || !storageKey) return;
+
+          try {
+              storedLevel = window.localStorage[storageKey];
+          } catch (ignore) {}
+
+          // Fallback to cookies if local storage gives us nothing
+          if (typeof storedLevel === undefinedType) {
+              try {
+                  var cookie = window.document.cookie;
+                  var location = cookie.indexOf(
+                      encodeURIComponent(storageKey) + "=");
+                  if (location !== -1) {
+                      storedLevel = /^([^;]+)/.exec(cookie.slice(location))[1];
+                  }
+              } catch (ignore) {}
+          }
+
+          // If the stored level is not valid, treat it as if nothing was stored.
+          if (self.levels[storedLevel] === undefined) {
+              storedLevel = undefined;
+          }
+
+          return storedLevel;
+      }
+
+      function clearPersistedLevel() {
+          if (typeof window === undefinedType || !storageKey) return;
+
+          // Use localStorage if available
+          try {
+              window.localStorage.removeItem(storageKey);
+              return;
+          } catch (ignore) {}
+
+          // Use session cookie as fallback
+          try {
+              window.document.cookie =
+                encodeURIComponent(storageKey) + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC";
+          } catch (ignore) {}
+      }
+
+      /*
+       *
+       * Public logger API - see https://github.com/pimterry/loglevel for details
+       *
+       */
+
+      self.name = name;
+
+      self.levels = { "TRACE": 0, "DEBUG": 1, "INFO": 2, "WARN": 3,
+          "ERROR": 4, "SILENT": 5};
+
+      self.methodFactory = factory || defaultMethodFactory;
+
+      self.getLevel = function () {
+          return currentLevel;
+      };
+
+      self.setLevel = function (level, persist) {
+          if (typeof level === "string" && self.levels[level.toUpperCase()] !== undefined) {
+              level = self.levels[level.toUpperCase()];
+          }
+          if (typeof level === "number" && level >= 0 && level <= self.levels.SILENT) {
+              currentLevel = level;
+              if (persist !== false) {  // defaults to true
+                  persistLevelIfPossible(level);
+              }
+              replaceLoggingMethods.call(self, level, name);
+              if (typeof console === undefinedType && level < self.levels.SILENT) {
+                  return "No console available for logging";
+              }
+          } else {
+              throw "log.setLevel() called with invalid level: " + level;
+          }
+      };
+
+      self.setDefaultLevel = function (level) {
+          defaultLevel = level;
+          if (!getPersistedLevel()) {
+              self.setLevel(level, false);
+          }
+      };
+
+      self.resetLevel = function () {
+          self.setLevel(defaultLevel, false);
+          clearPersistedLevel();
+      };
+
+      self.enableAll = function(persist) {
+          self.setLevel(self.levels.TRACE, persist);
+      };
+
+      self.disableAll = function(persist) {
+          self.setLevel(self.levels.SILENT, persist);
+      };
+
+      // Initialize with the right level
+      var initialLevel = getPersistedLevel();
+      if (initialLevel == null) {
+          initialLevel = defaultLevel;
+      }
+      self.setLevel(initialLevel, false);
+    }
+
+    /*
+     *
+     * Top-level API
+     *
+     */
+
+    var defaultLogger = new Logger();
+
+    var _loggersByName = {};
+    defaultLogger.getLogger = function getLogger(name) {
+        if ((typeof name !== "symbol" && typeof name !== "string") || name === "") {
+          throw new TypeError("You must supply a name when creating a logger.");
+        }
+
+        var logger = _loggersByName[name];
+        if (!logger) {
+          logger = _loggersByName[name] = new Logger(
+            name, defaultLogger.getLevel(), defaultLogger.methodFactory);
+        }
+        return logger;
+    };
+
+    // Grab the current global log variable in case of overwrite
+    var _log = (typeof window !== undefinedType) ? window.log : undefined;
+    defaultLogger.noConflict = function() {
+        if (typeof window !== undefinedType &&
+               window.log === defaultLogger) {
+            window.log = _log;
+        }
+
+        return defaultLogger;
+    };
+
+    defaultLogger.getLoggers = function getLoggers() {
+        return _loggersByName;
+    };
+
+    // ES6 default export, for compatibility
+    defaultLogger['default'] = defaultLogger;
+
+    return defaultLogger;
+}));
+
+
+/***/ }),
+
 /***/ 467:
 /***/ ((module, exports, __nccwpck_require__) => {
 
@@ -44611,28 +44915,32 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.deleteAction = void 0;
+const loglevel_1 = __importDefault(__nccwpck_require__(8063));
 const utils_1 = __nccwpck_require__(6252);
 const getWorkspace_1 = __nccwpck_require__(5262);
 const deleteBucket_1 = __nccwpck_require__(8219);
 const deleteAction = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.info('Executing main function.');
-        console.info('Workspace: ', (0, getWorkspace_1.getWorkspace)());
+        loglevel_1.default.info('Executing main function.');
+        loglevel_1.default.info('Workspace: ', (0, getWorkspace_1.getWorkspace)());
         const Bucket = (0, utils_1.generateBucketName)();
-        console.info(`Bucket name to delete: ${Bucket}`);
+        loglevel_1.default.info(`Bucket name to delete: ${Bucket}`);
         const isBucketAlreadyCreated = yield (0, utils_1.verifyIfBucketWasAlreadCreated)(Bucket);
         if (isBucketAlreadyCreated) {
-            console.info(`Bucket already created, updating files...`);
+            loglevel_1.default.info(`Bucket already created, updating files...`);
             yield (0, utils_1.deleteAllFiles)(Bucket);
             yield (0, deleteBucket_1.deleteBucket)(Bucket);
             return;
         }
-        console.info(`There is no Bucket with name ${Bucket}. Nothing was done`);
+        loglevel_1.default.info(`There is no Bucket with name ${Bucket}. Nothing was done`);
     }
     catch (e) {
-        console.error(`An error occurred while executing the main function of delete: ${e}`);
+        loglevel_1.default.error(`An error occurred while executing the main function of delete: ${e}`);
     }
 });
 exports.deleteAction = deleteAction;
@@ -44659,17 +44967,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.main = void 0;
+const loglevel_1 = __importDefault(__nccwpck_require__(8063));
 const delete_1 = __nccwpck_require__(4998);
 const upload_1 = __nccwpck_require__(7296);
 const core_1 = __importDefault(__nccwpck_require__(2186));
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
+    loglevel_1.default.setLevel(process.env.LOG_LEVEL || 'info');
     try {
-        console.info(`The action is executing the delete function`);
+        loglevel_1.default.info(`The action is executing the delete function`);
         if (process.env.ACTION === 'delete') {
             yield (0, delete_1.deleteAction)();
             return;
         }
-        console.info(`The action is executing the upload function`);
+        loglevel_1.default.info(`The action is executing the upload function`);
         yield (0, upload_1.uploadAction)();
     }
     catch (error) {
@@ -44696,29 +45006,33 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.uploadAction = void 0;
+const loglevel_1 = __importDefault(__nccwpck_require__(8063));
 const utils_1 = __nccwpck_require__(6252);
 const getWorkspace_1 = __nccwpck_require__(5262);
 const uploadAction = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.info('Executing main function.');
-        console.info('Workspace: ', (0, getWorkspace_1.getWorkspace)());
+        loglevel_1.default.info('Executing main function.');
+        loglevel_1.default.info('Workspace: ', (0, getWorkspace_1.getWorkspace)());
         const Bucket = (0, utils_1.generateBucketName)();
-        console.info(`Bucket name created: ${Bucket}`);
+        loglevel_1.default.info(`Bucket name created: ${Bucket}`);
         const isBucketAlreadyCreated = yield (0, utils_1.verifyIfBucketWasAlreadCreated)(Bucket);
         if (isBucketAlreadyCreated) {
-            console.info(`Bucket already created, updating files...`);
+            loglevel_1.default.info(`Bucket already created, updating files...`);
             yield (0, utils_1.deleteAllFiles)(Bucket);
             yield (0, utils_1.uploadAllFiles)(Bucket);
             return;
         }
-        console.info(`Bucket is not present, creating new Bucket...`);
+        loglevel_1.default.info(`Bucket is not present, creating new Bucket...`);
         yield (0, utils_1.createStaticBucket)(Bucket);
         yield (0, utils_1.uploadAllFiles)(Bucket);
     }
     catch (e) {
-        console.error(`An error occurred while executing the main function of upload: ${e}`);
+        loglevel_1.default.error(`An error occurred while executing the main function of upload: ${e}`);
     }
 });
 exports.uploadAction = uploadAction;
@@ -44740,8 +45054,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.configurePublicAccess = void 0;
+const loglevel_1 = __importDefault(__nccwpck_require__(8063));
 const client_s3_1 = __nccwpck_require__(9250);
 const generatePolicy_1 = __nccwpck_require__(3725);
 const createS3Instance_1 = __nccwpck_require__(9210);
@@ -44756,9 +45074,10 @@ const configurePublicAccess = (Bucket) => {
       An erro has ocorred trying to put policies in bucket ${Bucket}.
       Bucket will be deleted.
     `;
-        console.error(message);
+        loglevel_1.default.error(message);
         throw new Error(erro);
     };
+    loglevel_1.default.info('executing configurePublicAccess');
     return createS3Instance_1.s3.send(new client_s3_1.PutBucketPolicyCommand({
         Bucket,
         Policy: (0, generatePolicy_1.gereratePolicy)(Bucket),
@@ -44810,7 +45129,6 @@ const createBucket = (Bucket) => {
     }));
 };
 exports.createBucket = createBucket;
-// createBucket('mathiasgheno-vanilla-modal-on-demand-tes-5').then(console.log);
 
 
 /***/ }),
@@ -44862,7 +45180,6 @@ const createStaticBucket = (Bucket) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.createStaticBucket = createStaticBucket;
-// createStaticBucket('mathiasgheno-vanilla-modal-on-demand-test-4').then(console.log);
 
 
 /***/ }),
@@ -44888,8 +45205,12 @@ var __asyncValues = (this && this.__asyncValues) || function (o) {
     function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.deleteAllFiles = void 0;
+const loglevel_1 = __importDefault(__nccwpck_require__(8063));
 const client_s3_1 = __nccwpck_require__(9250);
 const createS3Instance_1 = __nccwpck_require__(9210);
 function deleteAllFiles(Bucket) {
@@ -44911,7 +45232,7 @@ function deleteAllFiles(Bucket) {
                         .send(deleteCommand)
                         .catch(e => {
                         const message = `An error has occurred while trying to delete ${Key} in ${Bucket}: ${e}`;
-                        console.error(message);
+                        loglevel_1.default.error(message);
                     });
                 }
             }
@@ -44930,7 +45251,6 @@ function deleteAllFiles(Bucket) {
     });
 }
 exports.deleteAllFiles = deleteAllFiles;
-// deleteAllFiles('mathiasgheno-vanilla-modal-on-demand-test').then(console.log);
 
 
 /***/ }),
@@ -44949,14 +45269,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.deleteBucket = void 0;
+const loglevel_1 = __importDefault(__nccwpck_require__(8063));
 const client_s3_1 = __nccwpck_require__(9250);
 const createS3Instance_1 = __nccwpck_require__(9210);
 const deleteBucket = (Bucket) => __awaiter(void 0, void 0, void 0, function* () {
+    loglevel_1.default.info('Executing deleteBucket');
     const deleteCommand = new client_s3_1.DeleteBucketCommand({ Bucket });
     yield createS3Instance_1.s3.send(deleteCommand);
-    console.info(`Bucket ${Bucket} deleted successfully`);
+    loglevel_1.default.info(`Bucket ${Bucket} deleted successfully`);
 });
 exports.deleteBucket = deleteBucket;
 
@@ -44987,8 +45312,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.generateBucketName = void 0;
+const loglevel_1 = __importDefault(__nccwpck_require__(8063));
 const github = __importStar(__nccwpck_require__(5438));
 function getBranchFromRef(ref) {
     let branchName = '';
@@ -44997,14 +45326,24 @@ function getBranchFromRef(ref) {
     }
     return branchName.toLowerCase();
 }
-// console.log(getBranchFromRef('/refs/heads/master'));
+/**
+ * @description
+ *
+ * This function will generate a bucket name based on: Owner, Repo Name, Branch name.
+ * If you configured `ENVIRONMENT` then this will be used as sufix.
+ *
+ * Example: mathiasgheno-s3-on-demand-action-feature-a-tst
+ *
+ */
 function generateBucketName() {
     const githubNameOwner = github.context.repo.owner;
     const projectLower = github.context.repo.repo;
-    console.info('Ref from GitHub: ', github.context.ref);
+    loglevel_1.default.info('Ref from GitHub: ', github.context.ref);
     const branchLower = getBranchFromRef(github.context.ref);
     const branchWithoutInvalidCharacter = branchLower.replace(/\//g, '-');
-    return `${githubNameOwner}-${projectLower}-${branchWithoutInvalidCharacter}`;
+    return process.env.ENVIRONMENT
+        ? `${githubNameOwner}-${projectLower}-${branchWithoutInvalidCharacter}`
+        : `${githubNameOwner}-${projectLower}-${branchWithoutInvalidCharacter}-${process.env.ENVIRONMENT}`;
 }
 exports.generateBucketName = generateBucketName;
 
@@ -45033,7 +45372,6 @@ const generateContentTypeOfKeyFile = (Key) => {
     }
 };
 exports.generateContentTypeOfKeyFile = generateContentTypeOfKeyFile;
-// console.log(generateContentTypeOfKeyFile('style.css'));
 
 
 /***/ }),
@@ -45053,7 +45391,6 @@ const generateKeyOfFile = (file, path) => {
         .replace('/', '');
 };
 exports.generateKeyOfFile = generateKeyOfFile;
-// console.log(generateKeyOfFile('/home/mathias/WebstormProjects/s3-on-demand-action/www/index.html', 'www'));
 
 
 /***/ }),
@@ -45096,7 +45433,6 @@ const getBucketUrl = (Bucket) => {
     return `http://${Bucket}.s3-website.${configs_1.CONFIGS.region}.amazonaws.com/`;
 };
 exports.getBucketUrl = getBucketUrl;
-// console.log(getBucketUrl('mathiasgheno-vanilla-modal-on-demand-tes-5'));
 
 
 /***/ }),
@@ -45158,8 +45494,12 @@ var __asyncValues = (this && this.__asyncValues) || function (o) {
     function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.listAllFiles = void 0;
+const loglevel_1 = __importDefault(__nccwpck_require__(8063));
 const util_1 = __nccwpck_require__(3837);
 const fs_1 = __nccwpck_require__(7147);
 const getWorkspace_1 = __nccwpck_require__(5262);
@@ -45176,13 +45516,13 @@ const listAllFiles = (dir = 'www', isRoot = true) => __awaiter(void 0, void 0, v
             const fullPath = isRoot ? `${projectPath}/${dir}/${file}` : `${dir}/${file}`;
             const fileStat = yield lstat$(fullPath);
             if (fileStat.isFile()) {
-                console.info(`Adding file ${fullPath} to list of files.`);
+                loglevel_1.default.info(`Adding file ${fullPath} to list of files.`);
                 flattedFiles.push(fullPath);
             }
             else {
                 const folderPath = isRoot ? `${projectPath}/${dir}/${file}` : `${dir}/${file}`;
-                console.log('folferPath', folderPath);
-                console.info(`Reading files of folder ${folderPath}.`);
+                loglevel_1.default.log('folferPath', folderPath);
+                loglevel_1.default.info(`Reading files of folder ${folderPath}.`);
                 const subfiles = yield (0, exports.listAllFiles)(folderPath, false);
                 flattedFiles = [...flattedFiles, ...subfiles];
             }
@@ -45223,8 +45563,12 @@ var __asyncValues = (this && this.__asyncValues) || function (o) {
     function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
     function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.uploadAllFiles = void 0;
+const loglevel_1 = __importDefault(__nccwpck_require__(8063));
 const fs_1 = __nccwpck_require__(7147);
 const util_1 = __nccwpck_require__(3837);
 const client_s3_1 = __nccwpck_require__(9250);
@@ -45233,25 +45577,25 @@ const generateContentTypeOfKeyFile_1 = __nccwpck_require__(2758);
 const getBucketUrl_1 = __nccwpck_require__(821);
 const listAllFiles_1 = __nccwpck_require__(5677);
 const generateKeyOfFile_1 = __nccwpck_require__(5642);
-const uploadAllFiles = (Bucket, path = 'www') => __awaiter(void 0, void 0, void 0, function* () {
+const uploadAllFiles = (Bucket, path = process.env.SOURCE_DIR || 'www') => __awaiter(void 0, void 0, void 0, function* () {
     var e_1, _a;
     const readFile$ = (0, util_1.promisify)(fs_1.readFile);
     const files = yield (0, listAllFiles_1.listAllFiles)(path);
-    console.log('All files send to upload', files.map(file => file));
+    loglevel_1.default.info('All files send to upload', files.map(file => file));
     const errorUploadFileCallback = (file) => (erro) => {
         const message = `An error has ocurred while trying to upload file ${file} at Bucket ${Bucket}`;
-        console.error(message, erro);
+        loglevel_1.default.error(message, erro);
         return Promise.reject(erro);
     };
     try {
         try {
             for (var files_1 = __asyncValues(files), files_1_1; files_1_1 = yield files_1.next(), !files_1_1.done;) {
                 const file = files_1_1.value;
-                console.info(`Reading content of ${file}`);
+                loglevel_1.default.info(`Reading content of ${file}`);
                 const Body = yield readFile$(file, {});
-                console.info(`Content of ${file} was loaded`);
+                loglevel_1.default.info(`Content of ${file} was loaded`);
                 const ContentType = (0, generateContentTypeOfKeyFile_1.generateContentTypeOfKeyFile)(file);
-                console.info(`Making upload of file ${file} with ContentType: ${ContentType}`);
+                loglevel_1.default.info(`Making upload of file ${file} with ContentType: ${ContentType}`);
                 const Key = (0, generateKeyOfFile_1.generateKeyOfFile)(file, path);
                 yield createS3Instance_1.s3.send(new client_s3_1.PutObjectCommand({
                     Bucket,
@@ -45260,7 +45604,7 @@ const uploadAllFiles = (Bucket, path = 'www') => __awaiter(void 0, void 0, void 
                     ContentType,
                 }))
                     .catch(errorUploadFileCallback(file));
-                console.info(`File ${file} was successfully uploaded`);
+                loglevel_1.default.info(`File ${file} was successfully uploaded`);
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
@@ -45270,7 +45614,7 @@ const uploadAllFiles = (Bucket, path = 'www') => __awaiter(void 0, void 0, void 
             }
             finally { if (e_1) throw e_1.error; }
         }
-        console.info(`You can check your website content at: ${(0, getBucketUrl_1.getBucketUrl)(Bucket)}`);
+        loglevel_1.default.info(`You can check your website content at: ${(0, getBucketUrl_1.getBucketUrl)(Bucket)}`);
     }
     catch (e) {
         const message = `An error has occurred in uploadAllFiles: ${e}`;
@@ -45278,7 +45622,7 @@ const uploadAllFiles = (Bucket, path = 'www') => __awaiter(void 0, void 0, void 
     }
 });
 exports.uploadAllFiles = uploadAllFiles;
-// uploadAllFiles('mathiasgheno-vanilla-modal-on-demand-tes-5').then(console.log);
+// uploadAllFiles('mathiasgheno-vanilla-modal-on-demand-tes-5').then(log.info);
 
 
 /***/ }),
@@ -45297,14 +45641,18 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.verifyIfBucketWasAlreadCreated = void 0;
+const loglevel_1 = __importDefault(__nccwpck_require__(8063));
 const client_s3_1 = __nccwpck_require__(9250);
 const createS3Instance_1 = __nccwpck_require__(9210);
 const verifyIfBucketWasAlreadCreated = (Bucket) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { Buckets } = yield createS3Instance_1.s3.send(new client_s3_1.ListBucketsCommand({}));
-        console.info(`All Buckets: ${Buckets === null || Buckets === void 0 ? void 0 : Buckets.map(({ Name }) => Name)}`);
+        loglevel_1.default.info(`All Buckets: ${Buckets === null || Buckets === void 0 ? void 0 : Buckets.map(({ Name }) => Name)}`);
         if (!Buckets || Buckets.length === 0) {
             return false;
         }
