@@ -25,6 +25,6 @@ export function generateBucketName() {
   const branchLower = getBranchFromRef(github.context.ref);
   const branchWithoutInvalidCharacter = branchLower.replace(/\//g, '-');
   return process.env.ENVIRONMENT
-    ? `${githubNameOwner}-${projectLower}-${branchWithoutInvalidCharacter}`
-    : `${githubNameOwner}-${projectLower}-${branchWithoutInvalidCharacter}-${process.env.ENVIRONMENT}`
+    ? `${githubNameOwner}-${projectLower}-${branchWithoutInvalidCharacter}-${process.env.ENVIRONMENT}`
+    : `${githubNameOwner}-${projectLower}-${branchWithoutInvalidCharacter}`
 }
