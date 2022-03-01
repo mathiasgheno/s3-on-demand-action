@@ -4,7 +4,7 @@ This project should be an Github Action to create, delete and update S3 Buckets 
 
 This is still in development.
 
-- [ ] Pass region has Github Action Parameter or .env for development
+- [] Pass region has Github Action Parameter or .env for development
 - [x] Pass owner has Github Action Parameter or .env for development
 - [x] Recursive files upload
 - [x] Finish createStaticBucket
@@ -71,3 +71,4 @@ jobs:
 
 1. Inspiration from [jakejarvis/s3-sync-action](https://github.com/jakejarvis/s3-sync-action)
 2. Learned from [Create a New Github Action to Automate Code Tasks with Javascript](https://egghead.io/courses/create-a-new-github-action-to-automate-code-tasks-with-javascript-f1e9)
+3. [Production Deploy SPA in S3](https://medium.com/@joecrobak/production-deploy-of-a-single-page-app-using-s3-and-cloudfront-d4aa2d170aa3)
