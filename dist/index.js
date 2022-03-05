@@ -44895,7 +44895,7 @@ function wrappy (fn, cb) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CONFIGS = void 0;
 exports.CONFIGS = {
-    region: 'sa-east-1',
+    region: process.env.AWS_REGION || 'sa-east-1',
 };
 
 

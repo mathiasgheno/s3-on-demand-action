@@ -1,3 +1,3 @@
 export const CONFIGS = {
-  region: 'sa-east-1',
+  region: process.env.AWS_REGION || 'sa-east-1',
 }

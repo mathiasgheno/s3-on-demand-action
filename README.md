@@ -4,7 +4,7 @@ This project should be an Github Action to create, delete and update S3 Buckets 
 
 This is still in development.
 
-- [] Pass region has Github Action Parameter or .env for development
+- [x] Pass region has Github Action Parameter or .env for development
 - [x] Pass owner has Github Action Parameter or .env for development
 - [x] Recursive files upload
 - [x] Finish createStaticBucket
@@ -42,9 +42,16 @@ jobs:
 
 ```
 
-You can also pass `SOURCE_DIR` and `LOG_LEVEL` to s3-on-demand-action configuration. The default value is `www` and `info`, respectively.
+Here ara all the configuration you can pass:
 
-Still you can pass `ENVIRONMENT` s3-on-demand-action configuration. This value will be used as sufix to the s3 bucket name if configured. 
+| Key                   | Required | Default   |
+|-----------------------|----------|-----------|
+| LOG_LEVEL             | No       | info      |
+| AWS_ACCESS_KEY_ID     | Yes      | N/A       |
+| AWS_SECRET_ACCESS_KEY | Yes      | N/A       |
+| SOURCE_DIR            | No       | www       |
+| AWS_REGION            | No       | sa-east-1 |
+| ENVIRONMENT           | No       | N/A       |
 
 For on delete branch: 
 
