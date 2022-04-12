@@ -54,6 +54,7 @@ Here ara all the configuration you can pass:
 | AWS_REGION            | No       | sa-east-1 |
 | ENVIRONMENT           | No       | N/A       |
 
+<!-- 
 For on delete branch: 
 
 PS: still WIP!
@@ -73,7 +74,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           SOURCE_DIR: 'www'
           ACTION: 'delete'
-```
+``` -->
 
 # References
 
