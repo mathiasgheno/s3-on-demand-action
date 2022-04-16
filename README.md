@@ -1,19 +1,12 @@
-# s3-on-demand-action
+# S3 on Demand Action
 
-This project should be an Github Action to create, delete and update S3 Buckets automatically.
+This project provides a simple github action that will deploy your static content at AWS's S3 bucket. 
+This github action will use S3 and CloudFront.
 
-This is still in development.
-
-- [x] Pass region has Github Action Parameter or .env for development
-- [x] Pass owner has Github Action Parameter or .env for development
-- [x] Recursive files upload
-- [x] Finish createStaticBucket
-- [x] Pass token credentials to github action
-- [x] Checkout project on action to download at content or reference it
-- [x] Docs for actions
-- [ ] Certification
-- [ ] Improve static setting
-- [ ] Delete function using cron
+- 🚀 Deploy to S3 bucket automatically
+- 🌐 Public access
+- 🔧 Custom configurations
+- 📦️ Environment and branch based domains
 
 # How to Use
 
