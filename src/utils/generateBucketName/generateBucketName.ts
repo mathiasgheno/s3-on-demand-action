@@ -23,6 +23,21 @@ function isBiggerThanCertificationLimitation(bucket: string) {
   return bucket.length > AWS_CERTIFICATION_LIMIT_CARACTERS
 }
 
+// see: https://github.com/darkskyapp/string-hash/blob/master/index.js
+function hash(string: string) {
+  let hash = 5381;
+  let i    = string.length;
+
+  while(i) {
+    hash = (hash * 33) ^ string.charCodeAt(--i);
+  }
+
+  /* JavaScript does bitwise operations (like XOR, above) on 32-bit signed
+   * integers. Since we want the results to be always positive, convert the
+   * signed int to an unsigned by doing an unsigned bitshift. */
+  return hash >>> 0;
+}
+
 /**
  * @description
  *
@@ -42,16 +57,12 @@ export function generateBucketName() {
   const branchWithoutInvalidCharacter = branchLower.replace(/\//g, '-');
 
   if(process.env.ENVIRONMENT) {
-    let name = `${githubNameOwner}-${projectLower}-${branchWithoutInvalidCharacter}-${process.env.ENVIRONMENT}`;
-    if(isBiggerThanCertificationLimitation(name)) {
-      name = `${githubNameOwner}-${projectAbbreviated}-${branchWithoutInvalidCharacter}-${process.env.ENVIRONMENT}`
-    }
-    return name;
+    let url_base = hash(`${githubNameOwner}-${projectLower}-${branchWithoutInvalidCharacter}`);
+    log.debug(url_base);
+    return `${url_base}-${process.env.ENVIRONMENT}`
   } else {
-    let name = `${githubNameOwner}-${projectAbbreviated}-${branchWithoutInvalidCharacter}`;
-    if(isBiggerThanCertificationLimitation(name)) {
-      name = `${githubNameOwner}-${projectAbbreviated}-${branchWithoutInvalidCharacter}`;
-    }
-    return name;
+    const url_base = hash(`${githubNameOwner}-${projectLower}-${branchWithoutInvalidCharacter}`)
+    log.debug(url_base);
+    return `${url_base}`;
   }
 }
