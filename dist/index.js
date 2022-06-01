@@ -71777,6 +71777,7 @@ const uploadToCloudFront = (Bucket) => {
                 ],
                 Quantity: 1
             },
+            DefaultRootObject: 'index.html',
             Comment: `Created from s3-on-demand-action and ${Bucket}`,
             CallerReference: new Date().toDateString(),
             DefaultCacheBehavior: {

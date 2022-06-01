@@ -15,7 +15,7 @@
     "S3",
     "Gihub Action"
   ],
-  "author": "",
+  "author": "Mathias Gheno Azzolini<mathiasgheno@gmail.com>",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/mathiasgheno/s3-on-demand-action/issues"
