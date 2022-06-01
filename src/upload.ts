@@ -7,6 +7,7 @@ import {
   verifyIfBucketWasAlreadCreated,
 } from './utils';
 import { getWorkspace } from "./utils/getWorkspace/getWorkspace";
+import { uploadToCloudFront } from './utils/uploadToCloudFront/uploadToCloudFront';
 
 type UploadAction = () => Promise<void>
 
@@ -26,6 +27,7 @@ export const uploadAction: UploadAction = async () => {
     log.info(`Bucket is not present, creating new Bucket...`);
     await createStaticBucket(Bucket);
     await uploadAllFiles(Bucket);
+    await uploadToCloudFront(Bucket);
   } catch (e) {
     log.error(`An error occurred while executing the main function of upload: ${e}`);
   }
