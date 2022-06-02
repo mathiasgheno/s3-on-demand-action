@@ -71548,7 +71548,7 @@ const getBucketUrl = (Bucket) => {
 };
 exports.getBucketUrl = getBucketUrl;
 const getBuckeDomain = (Bucket) => {
-    return `${Bucket}.s3-website.${configs_1.CONFIGS.region}.amazonaws.com/`;
+    return `${Bucket}.s3-website.${configs_1.CONFIGS.region}.amazonaws.com`;
 };
 exports.getBuckeDomain = getBuckeDomain;
 
@@ -71763,6 +71763,7 @@ const uploadToCloudFront = (Bucket) => {
     loglevel_1.default.info('Running uploadToCloudFront');
     const client = new client_cloudfront_1.CloudFrontClient({ region: configs_1.CONFIGS.region });
     const DomainName = (0, getBucketUrl_1.getBuckeDomain)(Bucket);
+    loglevel_1.default.info(`DomainName ${DomainName}`);
     const command = new client_cloudfront_1.CreateDistributionCommand({
         DistributionConfig: {
             Origins: {
@@ -71779,7 +71780,7 @@ const uploadToCloudFront = (Bucket) => {
                             },
                             HTTPSPort: 443,
                         },
-                        Id: DomainName,
+                        Id: Bucket,
                         DomainName,
                     },
                 ],
@@ -71812,8 +71813,7 @@ const uploadToCloudFront = (Bucket) => {
     });
 };
 exports.uploadToCloudFront = uploadToCloudFront;
-//
-// uploadToCloudFront('mathias-gheno-vanilla-modal-on-demand-test-6.s3-website-sa-east-1.amazonaws.com')
+// uploadToCloudFront('2874623886')
 //   .then(data => console.log(data))
 
 

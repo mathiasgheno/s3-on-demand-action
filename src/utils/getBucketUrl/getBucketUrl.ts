@@ -7,5 +7,5 @@ export const getBucketUrl: GetBucketUrl = (Bucket) => {
 }
 
 export const getBuckeDomain: GetBucketUrl = (Bucket) => {
-  return `${Bucket}.s3-website.${CONFIGS.region}.amazonaws.com/`;
+  return `${Bucket}.s3-website.${CONFIGS.region}.amazonaws.com`;
 }

@@ -10,6 +10,7 @@ export const uploadToCloudFront = (Bucket: string) => {
   log.info('Running uploadToCloudFront');
   const client = new CloudFrontClient({ region: CONFIGS.region });
   const DomainName = getBuckeDomain(Bucket);
+  log.info(`DomainName ${DomainName}`);
   const command = new CreateDistributionCommand({
     DistributionConfig: {
       Origins: {
@@ -26,7 +27,7 @@ export const uploadToCloudFront = (Bucket: string) => {
               },
               HTTPSPort: 443,
             },
-            Id: DomainName,
+            Id: Bucket,
             DomainName,
           },
         ],
@@ -57,6 +58,6 @@ export const uploadToCloudFront = (Bucket: string) => {
       return data;
     });
 }
-//
-// uploadToCloudFront('mathias-gheno-vanilla-modal-on-demand-test-6.s3-website-sa-east-1.amazonaws.com')
+
+// uploadToCloudFront('2874623886')
 //   .then(data => console.log(data))
