@@ -71105,6 +71105,7 @@ const uploadAction = () => __awaiter(void 0, void 0, void 0, function* () {
             loglevel_1.default.info(`Bucket already created, updating files...`);
             yield (0, utils_1.deleteAllFiles)(Bucket);
             yield (0, utils_1.uploadAllFiles)(Bucket);
+            yield (0, uploadToCloudFront_1.uploadToCloudFront)(Bucket);
             return;
         }
         loglevel_1.default.info(`Bucket is not present, creating new Bucket...`);

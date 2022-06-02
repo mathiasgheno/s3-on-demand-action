@@ -22,6 +22,7 @@ export const uploadAction: UploadAction = async () => {
       log.info(`Bucket already created, updating files...`);
       await deleteAllFiles(Bucket);
       await uploadAllFiles(Bucket);
+      await uploadToCloudFront(Bucket);
       return;
     }
     log.info(`Bucket is not present, creating new Bucket...`);
