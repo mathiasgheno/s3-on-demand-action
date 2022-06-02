@@ -4,6 +4,7 @@ import {
 } from '@aws-sdk/client-cloudfront';
 import { CONFIGS } from '../../configs/configs';
 import log from 'loglevel';
+import {getBuckeDomain} from '../getBucketUrl/getBucketUrl';
 
 export const uploadToCloudFront = (Bucket: string) => {
   const client = new CloudFrontClient({ region: CONFIGS.region });
@@ -24,7 +25,7 @@ export const uploadToCloudFront = (Bucket: string) => {
               HTTPSPort: 443,
             },
             Id: Bucket,
-            DomainName: Bucket,
+            DomainName: getBuckeDomain(Bucket),
           },
         ],
         Quantity: 1

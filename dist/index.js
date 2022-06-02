@@ -71540,12 +71540,16 @@ exports.gereratePolicy = gereratePolicy;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getBucketUrl = void 0;
+exports.getBuckeDomain = exports.getBucketUrl = void 0;
 const configs_1 = __nccwpck_require__(58239);
 const getBucketUrl = (Bucket) => {
     return `http://${Bucket}.s3-website.${configs_1.CONFIGS.region}.amazonaws.com/`;
 };
 exports.getBucketUrl = getBucketUrl;
+const getBuckeDomain = (Bucket) => {
+    return `${Bucket}.s3-website.${configs_1.CONFIGS.region}.amazonaws.com/`;
+};
+exports.getBuckeDomain = getBuckeDomain;
 
 
 /***/ }),
@@ -71753,6 +71757,7 @@ exports.uploadToCloudFront = void 0;
 const client_cloudfront_1 = __nccwpck_require__(72928);
 const configs_1 = __nccwpck_require__(58239);
 const loglevel_1 = __importDefault(__nccwpck_require__(78063));
+const getBucketUrl_1 = __nccwpck_require__(60821);
 const uploadToCloudFront = (Bucket) => {
     const client = new client_cloudfront_1.CloudFrontClient({ region: configs_1.CONFIGS.region });
     const command = new client_cloudfront_1.CreateDistributionCommand({
@@ -71772,7 +71777,7 @@ const uploadToCloudFront = (Bucket) => {
                             HTTPSPort: 443,
                         },
                         Id: Bucket,
-                        DomainName: Bucket,
+                        DomainName: (0, getBucketUrl_1.getBuckeDomain)(Bucket),
                     },
                 ],
                 Quantity: 1
