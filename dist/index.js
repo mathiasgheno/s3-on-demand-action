@@ -71759,7 +71759,9 @@ const configs_1 = __nccwpck_require__(58239);
 const loglevel_1 = __importDefault(__nccwpck_require__(78063));
 const getBucketUrl_1 = __nccwpck_require__(60821);
 const uploadToCloudFront = (Bucket) => {
+    loglevel_1.default.info('Running uploadToCloudFront');
     const client = new client_cloudfront_1.CloudFrontClient({ region: configs_1.CONFIGS.region });
+    const DomainName = (0, getBucketUrl_1.getBuckeDomain)(Bucket);
     const command = new client_cloudfront_1.CreateDistributionCommand({
         DistributionConfig: {
             Origins: {
@@ -71776,8 +71778,8 @@ const uploadToCloudFront = (Bucket) => {
                             },
                             HTTPSPort: 443,
                         },
-                        Id: Bucket,
-                        DomainName: (0, getBucketUrl_1.getBuckeDomain)(Bucket),
+                        Id: DomainName,
+                        DomainName,
                     },
                 ],
                 Quantity: 1
@@ -71799,6 +71801,7 @@ const uploadToCloudFront = (Bucket) => {
             Enabled: true,
         },
     });
+    loglevel_1.default.info(`Running command to create CloudFront ${DomainName}`);
     return client
         .send(command)
         .then(data => {

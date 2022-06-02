@@ -4,10 +4,12 @@ import {
 } from '@aws-sdk/client-cloudfront';
 import { CONFIGS } from '../../configs/configs';
 import log from 'loglevel';
-import {getBuckeDomain} from '../getBucketUrl/getBucketUrl';
+import { getBuckeDomain } from '../getBucketUrl/getBucketUrl';
 
 export const uploadToCloudFront = (Bucket: string) => {
+  log.info('Running uploadToCloudFront');
   const client = new CloudFrontClient({ region: CONFIGS.region });
+  const DomainName = getBuckeDomain(Bucket);
   const command = new CreateDistributionCommand({
     DistributionConfig: {
       Origins: {
@@ -24,8 +26,8 @@ export const uploadToCloudFront = (Bucket: string) => {
               },
               HTTPSPort: 443,
             },
-            Id: Bucket,
-            DomainName: getBuckeDomain(Bucket),
+            Id: DomainName,
+            DomainName,
           },
         ],
         Quantity: 1
@@ -47,6 +49,7 @@ export const uploadToCloudFront = (Bucket: string) => {
       Enabled: true,
     },
   });
+  log.info(`Running command to create CloudFront ${DomainName}`);
   return client
     .send(command)
     .then(data => {
