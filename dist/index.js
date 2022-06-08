@@ -71754,6 +71754,15 @@ exports.uploadAllFiles = uploadAllFiles;
 
 "use strict";
 
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -71763,14 +71772,21 @@ const client_cloudfront_1 = __nccwpck_require__(72928);
 const configs_1 = __nccwpck_require__(58239);
 const loglevel_1 = __importDefault(__nccwpck_require__(78063));
 const getBucketUrl_1 = __nccwpck_require__(60821);
-const uploadToCloudFront = (Bucket) => {
+const uploadToCloudFront = (Bucket) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
     loglevel_1.default.info('Running uploadToCloudFront');
     const client = new client_cloudfront_1.CloudFrontClient({ region: configs_1.CONFIGS.region });
     const DomainName = (0, getBucketUrl_1.getBucketS3Domain)(Bucket);
     loglevel_1.default.info(`DomainName ${DomainName}`);
+    const list = yield client.send(new client_cloudfront_1.ListDistributionsCommand({}));
+    const alreadyExist = (_b = (_a = list.DistributionList) === null || _a === void 0 ? void 0 : _a.Items) === null || _b === void 0 ? void 0 : _b.find(d => d.Id === Bucket);
+    if (alreadyExist) {
+        loglevel_1.default.info(`CloudFront already exists. CloudFormation will not be created`);
+        return;
+    }
     const command = new client_cloudfront_1.CreateDistributionCommand({
         DistributionConfig: {
-            CallerReference: new Date().toDateString(),
+            CallerReference: Bucket,
             Aliases: {
                 Items: [],
                 Quantity: 0,
@@ -71852,7 +71868,7 @@ const uploadToCloudFront = (Bucket) => {
         loglevel_1.default.log('Check your CloudFront distribution at: ', (_a = data === null || data === void 0 ? void 0 : data.Distribution) === null || _a === void 0 ? void 0 : _a.DomainName);
         return data;
     });
-};
+});
 exports.uploadToCloudFront = uploadToCloudFront;
 
 

@@ -1,19 +1,26 @@
 import {
-  CreateDistributionCommand,
   CloudFrontClient,
+  CreateDistributionCommand,
+  ListDistributionsCommand,
 } from '@aws-sdk/client-cloudfront';
 import { CONFIGS } from '../../configs/configs';
 import log from 'loglevel';
 import { getBucketS3Domain } from '../getBucketUrl/getBucketUrl';
 
-export const uploadToCloudFront = (Bucket: string) => {
+export const uploadToCloudFront = async (Bucket: string) => {
   log.info('Running uploadToCloudFront');
   const client = new CloudFrontClient({ region: CONFIGS.region });
   const DomainName = getBucketS3Domain(Bucket);
   log.info(`DomainName ${DomainName}`);
+  const list = await client.send(new ListDistributionsCommand({}));
+  const alreadyExist = list.DistributionList?.Items?.find(d => d.Id === Bucket);
+  if(alreadyExist) {
+    log.info(`CloudFront already exists. CloudFormation will not be created`);
+    return;
+  }
   const command = new CreateDistributionCommand({
     DistributionConfig: {
-      CallerReference: new Date().toDateString(),
+      CallerReference: Bucket,
       Aliases: {
         Items: [],
         Quantity: 0,
