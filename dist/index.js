@@ -71541,7 +71541,7 @@ exports.gereratePolicy = gereratePolicy;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getBuckeDomain = exports.getBucketUrl = void 0;
+exports.getBucketS3Domain = exports.getBuckeDomain = exports.getBucketUrl = void 0;
 const configs_1 = __nccwpck_require__(58239);
 const getBucketUrl = (Bucket) => {
     return `http://${Bucket}.s3-website.${configs_1.CONFIGS.region}.amazonaws.com/`;
@@ -71551,6 +71551,10 @@ const getBuckeDomain = (Bucket) => {
     return `${Bucket}.s3-website.${configs_1.CONFIGS.region}.amazonaws.com`;
 };
 exports.getBuckeDomain = getBuckeDomain;
+const getBucketS3Domain = (Bucket) => {
+    return `${Bucket}.s3.${configs_1.CONFIGS.region}.amazonaws.com`;
+};
+exports.getBucketS3Domain = getBucketS3Domain;
 
 
 /***/ }),
@@ -71762,44 +71766,81 @@ const getBucketUrl_1 = __nccwpck_require__(60821);
 const uploadToCloudFront = (Bucket) => {
     loglevel_1.default.info('Running uploadToCloudFront');
     const client = new client_cloudfront_1.CloudFrontClient({ region: configs_1.CONFIGS.region });
-    const DomainName = (0, getBucketUrl_1.getBuckeDomain)(Bucket);
+    const DomainName = (0, getBucketUrl_1.getBucketS3Domain)(Bucket);
     loglevel_1.default.info(`DomainName ${DomainName}`);
     const command = new client_cloudfront_1.CreateDistributionCommand({
         DistributionConfig: {
+            CallerReference: new Date().toDateString(),
+            Aliases: {
+                Items: [],
+                Quantity: 0,
+            },
+            DefaultRootObject: 'index.html',
             Origins: {
                 Items: [
                     {
-                        CustomOriginConfig: {
-                            HTTPPort: 80,
-                            OriginKeepaliveTimeout: 5,
-                            OriginProtocolPolicy: 'https-only',
-                            OriginReadTimeout: 30,
-                            OriginSslProtocols: {
-                                Items: ['TLSv1.2'],
-                                Quantity: 1,
-                            },
-                            HTTPSPort: 443,
-                        },
-                        Id: Bucket,
+                        Id: DomainName,
                         DomainName,
+                        OriginPath: '',
+                        CustomHeaders: {
+                            Items: [],
+                            Quantity: 0,
+                        },
+                        S3OriginConfig: {
+                            OriginAccessIdentity: '',
+                        },
+                        ConnectionAttempts: 3,
+                        ConnectionTimeout: 10,
+                        OriginShield: {
+                            Enabled: false,
+                        },
                     },
                 ],
                 Quantity: 1
             },
-            DefaultRootObject: 'index.html',
-            Comment: `Created from s3-on-demand-action and ${Bucket}`,
-            CallerReference: new Date().toDateString(),
-            DefaultCacheBehavior: {
-                ViewerProtocolPolicy: 'https-only',
-                TargetOriginId: Bucket,
-                MinTTL: 0,
-                ForwardedValues: {
-                    Cookies: { Forward: 'all' },
-                    Headers: { Items: [], Quantity: 0 },
-                    QueryString: false,
-                    QueryStringCacheKeys: { Items: [], Quantity: 0 },
-                }
+            OriginGroups: {
+                Items: [],
+                Quantity: 0,
             },
+            DefaultCacheBehavior: {
+                TargetOriginId: DomainName,
+                TrustedSigners: {
+                    Enabled: false,
+                    Quantity: 0,
+                },
+                TrustedKeyGroups: {
+                    Enabled: false,
+                    Quantity: 0,
+                },
+                ViewerProtocolPolicy: 'allow-all',
+                AllowedMethods: {
+                    Quantity: 2,
+                    Items: ['GET', 'HEAD'],
+                    CachedMethods: {
+                        Quantity: 2,
+                        Items: ['GET', 'HEAD'],
+                    },
+                },
+                SmoothStreaming: false,
+                Compress: true,
+                LambdaFunctionAssociations: {
+                    Items: [],
+                    Quantity: 0,
+                },
+                FunctionAssociations: {
+                    Items: [],
+                    Quantity: 0,
+                },
+                FieldLevelEncryptionId: '',
+                CachePolicyId: '658327ea-f89d-4fab-a63d-7e88639e58f6',
+            },
+            ViewerCertificate: {
+                CloudFrontDefaultCertificate: true,
+                MinimumProtocolVersion: 'TLSv1',
+            },
+            HttpVersion: 'http2',
+            IsIPV6Enabled: true,
+            Comment: `Created from s3-on-demand-action and ${Bucket}`,
             Enabled: true,
         },
     });
@@ -71813,8 +71854,6 @@ const uploadToCloudFront = (Bucket) => {
     });
 };
 exports.uploadToCloudFront = uploadToCloudFront;
-// uploadToCloudFront('2874623886')
-//   .then(data => console.log(data))
 
 
 /***/ }),
